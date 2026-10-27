@@ -1,0 +1,8 @@
+[{
+  "modid": "futureclient",
+  "name": "Future Client",
+  "description": "Clean PvP HUD client: Motion Blur, CPS, Keystrokes, Ping, custom menu and ClickGUI.",
+  "version": "1.0",
+  "mcversion": "1.8.9",
+  "authorList": ["You"]
+}]

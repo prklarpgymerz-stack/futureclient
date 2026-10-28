@@ -1,5 +1,6 @@
 package com.futureclient.gui;
 
+import com.futureclient.FutureClient;
 import com.futureclient.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -16,7 +17,8 @@ public class FlatButton extends GuiButton {
         if (!visible) return;
         hovered = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height;
         hover += ((hovered ? 1f : 0f) - hover) * 0.2f;
-        int bg = RenderUtil.lerp(0xA0161620, 0xE07C5CFF, hover);
+        int acc = FutureClient.modules != null ? FutureClient.modules.client.accent.value : 0xFF7C5CFF;
+        int bg = RenderUtil.lerp(0xA0161620, (acc & 0xFFFFFF) | 0xE0000000, hover);
         RenderUtil.roundRect(xPosition, yPosition, width, height, 5, bg);
         int tc = RenderUtil.lerp(0xFFCFCFDC, 0xFFFFFFFF, hover);
         mc.fontRendererObj.drawString(displayString,

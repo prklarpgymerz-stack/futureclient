@@ -1,7 +1,10 @@
-FUTURE CLIENT (Forge 1.8.9)
-Build (on PC, JDK 8): put this folder in a Forge 1.8.9 MDK setup (or use it directly with ForgeGradle 2.1),
-then run:  gradlew build   -> jar in build/libs/ -> drop into .minecraft/mods with Forge 1.8.9.
-In game: RIGHT SHIFT opens the ClickGUI (rebind in Controls).
+FUTURE CLIENT 1.1 (Forge 1.8.9)
+
+In game:  RIGHT SHIFT = ClickGUI (rebind in Controls),  C = Zoom (hold).
+ClickGUI tabs: All / HUD / Visual / Utility / Client / Profiles + HUD Editor button.
+Profiles are saved in .minecraft/config/futureclient/profiles/
+
+Build: push to GitHub, the Actions tab builds the jar (see .github/workflows/build.yml).
 
 NAMETAG LOGO
 - You always get the logo (third person) on your own nametag.

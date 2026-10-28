@@ -1,5 +1,6 @@
 package com.futureclient.gui;
 
+import com.futureclient.FutureClient;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
 
@@ -37,10 +38,13 @@ public class FutureMainMenu extends GuiScreen {
     @Override
     public void drawScreen(int mx, int my, float pt) {
         drawGradientRect(0, 0, width, height, 0xFF090912, 0xFF1B1038);
-        for (float[] q : p) {
-            q[1] -= q[2];
-            if (q[1] < -2) { q[1] = height + 2; q[0] = rnd.nextFloat() * width; }
-            drawRect((int) q[0], (int) q[1], (int) (q[0] + q[3]), (int) (q[1] + q[3]), 0x4DB8A6FF);
+        int acc = FutureClient.modules.client.accent.value;
+        if (FutureClient.modules.client.particles.value) {
+            for (float[] q : p) {
+                q[1] -= q[2];
+                if (q[1] < -2) { q[1] = height + 2; q[0] = rnd.nextFloat() * width; }
+                drawRect((int) q[0], (int) q[1], (int) (q[0] + q[3]), (int) (q[1] + q[3]), (acc & 0xFFFFFF) | 0x59000000);
+            }
         }
         GlStateManager.pushMatrix();
         GlStateManager.translate(width / 2f, height / 2f - 72, 0);
@@ -50,10 +54,10 @@ public class FutureMainMenu extends GuiScreen {
         GlStateManager.pushMatrix();
         GlStateManager.translate(width / 2f, height / 2f - 36, 0);
         GlStateManager.scale(1.5f, 1.5f, 1f);
-        drawCenteredString(fontRendererObj, "C L I E N T", 0, 0, 0xFF7C5CFF);
+        drawCenteredString(fontRendererObj, "C L I E N T", 0, 0, acc);
         GlStateManager.popMatrix();
         super.drawScreen(mx, my, pt);
-        fontRendererObj.drawString("Future Client 1.0", 6, height - 12, 0xFF5A5A6A);
+        fontRendererObj.drawString("Future Client 1.1", 6, height - 12, 0xFF5A5A6A);
         String v = "Minecraft 1.8.9";
         fontRendererObj.drawString(v, width - fontRendererObj.getStringWidth(v) - 6, height - 12, 0xFF5A5A6A);
     }

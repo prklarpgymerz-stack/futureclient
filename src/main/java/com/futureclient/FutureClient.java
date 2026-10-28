@@ -29,7 +29,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
-@Mod(modid = "futureclient", name = "Future Client", version = "1.1", clientSideOnly = true, acceptedMinecraftVersions = "[1.8.9]")
+@Mod(modid = "futureclient", name = "Future Client", version = "1.2", clientSideOnly = true, acceptedMinecraftVersions = "[1.8.9]")
 public class FutureClient {
     public static ModuleManager modules;
     public static KeyBinding openGui, zoomKey;
@@ -46,7 +46,7 @@ public class FutureClient {
         MinecraftForge.EVENT_BUS.register(new NametagHandler());
         FMLCommonHandler.instance().bus().register(this);
         FutureNet.start();
-        Display.setTitle("Future Client 1.1");
+        Display.setTitle("Future Client 1.2");
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() { ConfigManager.save(); }
         }));

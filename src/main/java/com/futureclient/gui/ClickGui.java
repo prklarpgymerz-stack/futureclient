@@ -120,7 +120,7 @@ public class ClickGui extends GuiScreen {
         FontRenderer fr = mc.fontRendererObj;
         hits.clear();
         ClientSettings cs = FutureClient.modules.client;
-        drawRect(0, 0, width, height, ((int) (cs.dim.value * 2.55)) << 24);
+        GuiBackground.draw(width, height);
 
         if (dragging != null) {
             if (Mouse.isButtonDown(0)) setSlider(dragging, mx); else dragging = null;
@@ -165,7 +165,7 @@ public class ClickGui extends GuiScreen {
         RenderUtil.roundRect(x + 12, y + H - 54, 76, 20, 5, hb ? RenderUtil.lerp(acc, 0xFFFFFFFF, 0.2f) : acc);
         String t = "HUD Editor";
         fr.drawString(t, (int) (x + 12 + (76 - fr.getStringWidth(t)) / 2f), (int) (y + H - 48), 0xFFFFFFFF);
-        fr.drawString("v1.1", (int) x + 17, (int) (y + H - 24), 0xFF5A5A6A);
+        fr.drawString("v1.2", (int) x + 17, (int) (y + H - 24), 0xFF5A5A6A);
     }
 
     private void scrollbar(float x, float y, float h, float scrollV, float max) {

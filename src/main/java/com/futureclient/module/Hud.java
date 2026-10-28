@@ -1,5 +1,6 @@
 package com.futureclient.module;
 
+import com.futureclient.FutureClient;
 import com.futureclient.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -66,8 +67,16 @@ public abstract class Hud extends Module {
         return 0xFF000000 | java.awt.Color.HSBtoRGB(hue, 0.7f, 1f);
     }
 
+    /** Global "HUD Backgrounds" option overrides each module's own Background toggle. */
+    protected boolean bgOn() {
+        String m = FutureClient.modules.client.hudBg.get();
+        if (m.equals("All On")) return true;
+        if (m.equals("All Off")) return false;
+        return bg.value;
+    }
+
     protected void bgBox(float x, float y, float bw, float bh) {
-        if (bg.value) RenderUtil.roundRect(x, y, bw, bh, 3, ((int) (bgAlpha.value * 2.55) << 24));
+        if (bgOn()) RenderUtil.roundRect(x, y, bw, bh, 3, ((int) (bgAlpha.value * 2.55) << 24));
     }
 
     protected void text(String s, float x, float y, int c) {

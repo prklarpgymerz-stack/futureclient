@@ -36,7 +36,7 @@ public class HudEditor extends GuiScreen {
 
     @Override
     public void drawScreen(int mx, int my, float pt) {
-        drawRect(0, 0, width, height, 0x60000000);
+        GuiBackground.drawLight(width, height);
         ScaledResolution sr = new ScaledResolution(mc);
         int acc = FutureClient.modules.client.accent.value;
         if (drag != null) {

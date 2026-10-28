@@ -1,6 +1,9 @@
 package com.futureclient.util;
 
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
 
 public class RenderUtil {
@@ -29,6 +32,28 @@ public class RenderUtil {
             double rad = Math.toRadians(a);
             GL11.glVertex2d(cx + Math.sin(rad) * r, cy - Math.cos(rad) * r);
         }
+    }
+
+    /** Vertical gradient (top color to bottom color, both ARGB). */
+    public static void gradient(float x, float y, float w, float h, int top, int bottom) {
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.shadeModel(7425);
+        Tessellator t = Tessellator.getInstance();
+        WorldRenderer wr = t.getWorldRenderer();
+        wr.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        wr.pos(x + w, y, 0).color((top >> 16 & 255) / 255f, (top >> 8 & 255) / 255f, (top & 255) / 255f, (top >>> 24) / 255f).endVertex();
+        wr.pos(x, y, 0).color((top >> 16 & 255) / 255f, (top >> 8 & 255) / 255f, (top & 255) / 255f, (top >>> 24) / 255f).endVertex();
+        wr.pos(x, y + h, 0).color((bottom >> 16 & 255) / 255f, (bottom >> 8 & 255) / 255f, (bottom & 255) / 255f, (bottom >>> 24) / 255f).endVertex();
+        wr.pos(x + w, y + h, 0).color((bottom >> 16 & 255) / 255f, (bottom >> 8 & 255) / 255f, (bottom & 255) / 255f, (bottom >>> 24) / 255f).endVertex();
+        t.draw();
+        GlStateManager.shadeModel(7424);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+        GlStateManager.color(1f, 1f, 1f, 1f);
     }
 
     public static int lerp(int a, int b, float t) {

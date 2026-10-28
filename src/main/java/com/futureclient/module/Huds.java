@@ -101,7 +101,7 @@ public final class Huds {
     // ---------------------------------------------------------------- Keystrokes
     public static class Keystrokes extends Hud {
         final Setting.Bool mouse = new Setting.Bool("Mouse Buttons", true);
-        final Setting.Bool cps = new Setting.Bool("Show CPS", true);
+        final Setting.Bool cps = new Setting.Bool("Show CPS", false);
         final Setting.Bool space = new Setting.Bool("Space Bar", true);
         final Setting.Num fade = new Setting.Num("Fade Speed", 5, 1, 10, 1);
         final Setting.Num round = new Setting.Num("Corner Radius", 3, 0, 8, 1);
@@ -116,7 +116,7 @@ public final class Huds {
         @Override
         protected void measure() {
             w = 70;
-            h = mouse.value ? (space.value ? 84 : 70) : (space.value ? 60 : 46);
+            h = mouse.value ? (space.value ? 88 : 70) : (space.value ? 64 : 46);
         }
 
         private static int lum(int c) {
@@ -132,9 +132,9 @@ public final class Huds {
             String[] l = {"W", "A", "S", "D", "LMB", "RMB", ""};
             float my = 48f, sy = mouse.value ? 72f : 48f;
             float[][] r = {{24, 0, 22, 22}, {0, 24, 22, 22}, {24, 24, 22, 22}, {48, 24, 22, 22},
-                           {0, my, 34, 22}, {36, my, 34, 22}, {0, sy, 70, 12}};
+                           {0, my, 34, 22}, {36, my, 34, 22}, {0, sy, 70, 16}};
             int dark = lum(pressed.value) > 140 ? 0xFF111111 : 0xFFFFFFFF;
-            int base = bg.value ? ((int) (bgAlpha.value * 2.55) << 24) : 0;
+            int base = bgOn() ? ((int) (bgAlpha.value * 2.55) << 24) : 0;
             int on = (pressed.value & 0xFFFFFF) | 0xC8000000;
             for (int i = 0; i < 7; i++) {
                 if ((i == 4 || i == 5) && !mouse.value) continue;
@@ -145,7 +145,7 @@ public final class Huds {
                 int tc = RenderUtil.lerp(c, dark, fadeA[i]);
                 boolean sh = shadow.value && fadeA[i] < 0.5f;
                 if (i == 6) {
-                    RenderUtil.roundRect(x + kw / 2f - 12, y + kh / 2f - 1, 24, 2, 1, tc);
+                    RenderUtil.roundRect(x + kw / 2f - 14, y + kh / 2f - 1, 28, 2, 1, tc);
                 } else if (i >= 4 && cps.value) {
                     f.drawString(l[i], x + (kw - f.getStringWidth(l[i])) / 2f, y + 4, tc, sh);
                     String s = ClickTracker.get(i == 4) + " CPS";

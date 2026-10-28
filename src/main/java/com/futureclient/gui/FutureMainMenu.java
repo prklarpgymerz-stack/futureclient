@@ -57,7 +57,7 @@ public class FutureMainMenu extends GuiScreen {
         drawCenteredString(fontRendererObj, "C L I E N T", 0, 0, acc);
         GlStateManager.popMatrix();
         super.drawScreen(mx, my, pt);
-        fontRendererObj.drawString("Future Client 1.1", 6, height - 12, 0xFF5A5A6A);
+        fontRendererObj.drawString("Future Client 1.2", 6, height - 12, 0xFF5A5A6A);
         String v = "Minecraft 1.8.9";
         fontRendererObj.drawString(v, width - fontRendererObj.getStringWidth(v) - 6, height - 12, 0xFF5A5A6A);
     }

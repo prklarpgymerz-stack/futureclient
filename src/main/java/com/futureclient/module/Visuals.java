@@ -7,15 +7,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
@@ -26,20 +25,25 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+
+import java.nio.ByteBuffer;
 
 public final class Visuals {
     private Visuals() {}
 
     // ---------------------------------------------------------------- Motion Blur
     /**
-     * Real frame-accumulation blur: every frame is blended with the previous (already blended)
-     * frame. Frame-rate independent, no shader files needed.
+     * Frame-accumulation blur. Every frame, the previous (already blended) frame is drawn over the
+     * new one, then the result is copied into a plain RGB texture for the next frame.
+     * Uses no shaders and no extra framebuffers.
      */
     public static class MotionBlur extends Module {
-        public final Setting.Num strength = new Setting.Num("Strength", 5, 1, 10, 1);
+        public final Setting.Num strength = new Setting.Num("Strength", 6, 1, 10, 1);
         public final Setting.Bool fpsComp = new Setting.Bool("FPS Compensation", true);
-        private Framebuffer prev;
+        private int tex, tw, th;
         private long last;
+        private boolean reported;
 
         public MotionBlur() {
             super("Motion Blur", "Smooth frame-blending blur", Category.VISUAL, false);
@@ -49,30 +53,32 @@ public final class Visuals {
 
         @Override
         public void onDisable() {
-            if (prev != null) { prev.deleteFramebuffer(); prev = null; }
+            if (tex != 0) { GlStateManager.deleteTexture(tex); tex = 0; }
         }
 
         @Override
         public void onOverlayPre(RenderGameOverlayEvent.Pre e) {
             if (e.type != RenderGameOverlayEvent.ElementType.ALL) return;
             Minecraft mc = Minecraft.getMinecraft();
-            if (!OpenGlHelper.isFramebufferEnabled()) return;
             int w = mc.displayWidth, h = mc.displayHeight;
             if (w <= 0 || h <= 0) return;
-            Framebuffer main = mc.getFramebuffer();
 
+            GL11.glGetError(); // flush errors that are not ours
             long now = System.nanoTime();
             double dt = (now - last) / 1.0e9;
             last = now;
-
             boolean fresh = dt > 0.1;
-            if (prev == null) {
-                prev = new Framebuffer(w, h, false);
-                main.bindFramebuffer(true);
-                fresh = true;
-            } else if (prev.framebufferWidth != w || prev.framebufferHeight != h) {
-                prev.createBindFramebuffer(w, h);
-                main.bindFramebuffer(true);
+
+            if (tex == 0 || tw != w || th != h) {
+                if (tex != 0) GlStateManager.deleteTexture(tex);
+                tex = GL11.glGenTextures();
+                GlStateManager.bindTexture(tex);
+                GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+                GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+                GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+                GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+                GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB, w, h, 0, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
+                tw = w; th = h;
                 fresh = true;
             }
 
@@ -81,43 +87,44 @@ public final class Visuals {
             GlStateManager.disableDepth();
             GlStateManager.disableAlpha();
             GlStateManager.disableLighting();
+            GlStateManager.disableFog();
+            GlStateManager.disableCull();
             GlStateManager.depthMask(false);
 
             if (!fresh) {
-                double a60 = Math.min(0.95, 0.30 + strength.value * 0.065);
+                double a60 = Math.min(0.95, 0.45 + strength.value * 0.05);
                 double a = fpsComp.value ? Math.pow(a60, Math.max(0.05, Math.min(2.0, dt * 60.0))) : a60;
-                quad(prev.framebufferTexture, (float) Math.min(0.97, a), sw, sh, true);
+                GlStateManager.bindTexture(tex);
+                GlStateManager.enableTexture2D();
+                GlStateManager.enableBlend();
+                GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+                GlStateManager.color(1f, 1f, 1f, (float) Math.min(0.97, a));
+                Tessellator t = Tessellator.getInstance();
+                WorldRenderer wr = t.getWorldRenderer();
+                wr.begin(7, DefaultVertexFormats.POSITION_TEX);
+                wr.pos(0, sh, 0).tex(0, 0).endVertex();
+                wr.pos(sw, sh, 0).tex(1, 0).endVertex();
+                wr.pos(sw, 0, 0).tex(1, 1).endVertex();
+                wr.pos(0, 0, 0).tex(0, 1).endVertex();
+                t.draw();
             }
 
-            prev.bindFramebuffer(true);
-            quad(main.framebufferTexture, 1f, sw, sh, false);
-            main.bindFramebuffer(true);
+            // remember this (blended) frame for the next one
+            GlStateManager.bindTexture(tex);
+            GL11.glCopyTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
 
             GlStateManager.depthMask(true);
+            GlStateManager.enableCull();
             GlStateManager.enableDepth();
             GlStateManager.enableAlpha();
             GlStateManager.enableBlend();
             GlStateManager.color(1f, 1f, 1f, 1f);
-        }
 
-        private void quad(int tex, float alpha, int sw, int sh, boolean blend) {
-            GlStateManager.bindTexture(tex);
-            GlStateManager.enableTexture2D();
-            if (blend) {
-                GlStateManager.enableBlend();
-                GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            } else {
-                GlStateManager.disableBlend();
+            int err = GL11.glGetError();
+            if (err != 0 && !reported && mc.ingameGUI != null) {
+                reported = true;
+                mc.ingameGUI.getChatGUI().printChatMessage(new ChatComponentText("\u00a7c[Future Client] Motion Blur hit OpenGL error " + err + " - send this number to the developer."));
             }
-            GlStateManager.color(1f, 1f, 1f, alpha);
-            Tessellator t = Tessellator.getInstance();
-            WorldRenderer wr = t.getWorldRenderer();
-            wr.begin(7, DefaultVertexFormats.POSITION_TEX);
-            wr.pos(0, sh, 0).tex(0, 0).endVertex();
-            wr.pos(sw, sh, 0).tex(1, 0).endVertex();
-            wr.pos(sw, 0, 0).tex(1, 1).endVertex();
-            wr.pos(0, 0, 0).tex(0, 1).endVertex();
-            t.draw();
         }
     }
 

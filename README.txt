@@ -1,4 +1,4 @@
-FUTURE CLIENT 1.1 (Forge 1.8.9)
+FUTURE CLIENT 1.2 (Forge 1.8.9)
 
 In game:  RIGHT SHIFT = ClickGUI (rebind in Controls),  C = Zoom (hold).
 ClickGUI tabs: All / HUD / Visual / Utility / Client / Profiles + HUD Editor button.
